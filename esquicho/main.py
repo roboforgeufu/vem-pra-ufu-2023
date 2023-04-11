@@ -2,7 +2,7 @@
 
 from pybricks.ev3devices import Motor, UltrasonicSensor
 from pybricks.hubs import EV3Brick
-from pybricks.parameters import Port
+from pybricks.parameters import Color, Port
 
 
 class Turtle:
@@ -19,24 +19,43 @@ class Turtle:
         self.left_leg = Motor(left_leg_port)
         self.neck = Motor(neck_port)
 
+        self.neck_inside = None
+        self.neck_outside = None
+
+    def hide(self, dir_multiplier=1):
+        if dir_multiplier == 1:
+            self.brick.light.on(Color.RED)
+        else:
+            self.brick.light.on(Color.GREEN)
+        self.neck.run_until_stalled(-300 * dir_multiplier)
+
+    def is_hidden(self):
+        if self.neck_inside is None:
+            raise ValueError("neck values not set")
+        return abs(self.neck.angle() - self.neck_inside) < 20
+
     def cycle(self):
         self.neck.run_until_stalled(-150)
         self.neck.reset_angle(0)
-        neck_inside = 0
-        neck_outside = self.neck.run_until_stalled(150)
+        self.neck_inside = 0
+        self.neck_outside = self.neck.run_until_stalled(150)
 
         while True:
-            print(self.neck.angle(), neck_inside, neck_outside)
-            if self.eyes.distance() < 100:
+            if self.is_hidden():
+                # Distancia assustado
+                distance = 200
+            else:
+                # Distancia explorando
+                distance = 100
+
+            if self.eyes.distance() < distance:
                 self.left_leg.stop()
                 self.right_leg.stop()
-                if abs(self.neck.angle() - neck_inside) > 50:
-                    self.neck.run_target(-150, neck_inside, wait=False)
+                self.hide()
             else:
-                if abs(self.neck.angle() - neck_outside) > 50:
-                    self.neck.run_target(150, neck_outside, wait=False)
-                self.left_leg.run(150)
-                self.right_leg.run(150)
+                self.hide(-1)
+                self.left_leg.run(180)
+                self.right_leg.run(180)
 
 
 def main():
