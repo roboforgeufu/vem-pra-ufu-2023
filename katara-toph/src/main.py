@@ -122,6 +122,11 @@ def vem_pra_ufu_toph():
         toph.pid_walk(cm=10, vel=-60)
         toph.pid_turn(90)
         logic_mbox.send(False)
+        toph.motor_claw.run_target(300, const.CLAW_DOWN)
+        toph.pid_walk(cm=30, vel=-60)
+        toph.pid_turn(-90)
+        toph.pid_walk(cm=30, vel=-40)
+        toph.pid_turn(-90)
 
     elif objetivo == Color.RED:
         toph.pid_walk(cm=10, vel=-60)
@@ -129,8 +134,11 @@ def vem_pra_ufu_toph():
         toph.forward_while_same_reflection(50, 50, 20)
         toph.pid_walk(cm=15, vel=-60)
         logic_mbox.send(True)
-
-    toph.motor_claw.run_target(300, const.CLAW_DOWN)
+        toph.motor_claw.run_target(300, const.CLAW_DOWN)
+        toph.pid_walk(cm=30, vel=-60)
+        toph.pid_turn(90)
+        toph.pid_walk(cm=30, vel=-40)
+        toph.pid_turn(90)
 
 
 def vem_pra_ufu_katara():
