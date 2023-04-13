@@ -1,18 +1,16 @@
 #!/usr/bin/env pybricks-micropython
 import time
 
-from pybricks.parameters import Button, Color, Port
-from pybricks.tools import DataLog, wait
 import constants as const
-from robot import Robot
-
 from pybricks.messaging import (
     BluetoothMailboxClient,
     BluetoothMailboxServer,
     LogicMailbox,
     NumericMailbox,
 )
-
+from pybricks.parameters import Button, Color, Port
+from pybricks.tools import DataLog, wait
+from robot import Robot
 from utils import (
     PIDValues,
     ev3_print,
@@ -23,7 +21,6 @@ from utils import (
 
 
 def input_objetivo(ev3_brick):
-
     objetivo = None
     while True:
         buttons = ev3_brick.buttons.pressed()
@@ -32,17 +29,16 @@ def input_objetivo(ev3_brick):
             objetivo = Color.RED
         elif Button.RIGHT in buttons:
             objetivo = Color.YELLOW
-        
+
         ev3_brick.light.on(objetivo)
 
         if Button.CENTER in buttons:
             break
-    
+
     return objetivo
 
 
 def double_check_color(robot: Robot):
-
     color_left = robot.accurate_color(robot.color_l.rgb())
     color_right = robot.accurate_color(robot.color_r.rgb())
 
@@ -112,7 +108,7 @@ def vem_pra_ufu_toph():
             continue
         toph.pid_walk(cm=15, vel=-40)
         toph.pid_turn(90)
-    
+
     toph.forward_while_same_reflection(50, 50, 20)
 
     if objetivo == Color.YELLOW:
@@ -135,19 +131,20 @@ def vem_pra_ufu_toph():
 
 def vem_pra_ufu_katara():
     katara = Robot(
-                wheel_diameter=const.WHEEL_DIAMETER,
-                wheel_distance=const.WHEEL_DIST,
-                motor_r=Port.C,
-                motor_l=Port.B,
-                motor_claw=Port.A,
-                color_l=Port.S1,
-                color_r=Port.S2,
-                ultra_front=Port.S4,
-                debug=True,
-                turn_correction=const.KATARA_TURN_CORRECTION,
-                color_max_value=65,
-            )
+        wheel_diameter=const.WHEEL_DIAMETER,
+        wheel_distance=const.WHEEL_DIST,
+        motor_r=Port.C,
+        motor_l=Port.B,
+        motor_claw=Port.A,
+        color_l=Port.S1,
+        color_r=Port.S2,
+        ultra_front=Port.S4,
+        debug=True,
+        turn_correction=const.KATARA_TURN_CORRECTION,
+        color_max_value=65,
+    )
 
+    katara.motor_claw.run_target(300, const.CLAW_UP)
     katara.ev3_print(get_hostname())
     client = BluetoothMailboxClient()
     katara.ev3_print("CLIENT: establishing connection...")
@@ -162,6 +159,7 @@ def vem_pra_ufu_katara():
     katara.ev3_print("3")
     # Espera confirmação da Toph
     logic_mbox.wait()
+    katara.ev3_print("GO")
 
     while True:
         katara.forward_while_same_reflection(50, 50, 20)
@@ -177,32 +175,76 @@ def vem_pra_ufu_katara():
             break
         katara.pid_walk(cm=15, vel=-40)
         katara.pid_turn(90)
- 
+
     katara.pid_walk(cm=15, vel=-40)
+
     logic_mbox.wait()
     var = logic_mbox.read()
+    katara.ev3_print(var)
 
     # True = RED, False = YELLOW
+    multiplier = 1
     if var:
         multiplier = -1
+    else:
+        multiplier = 1
 
     katara.pid_turn(multiplier * 90)
     katara.forward_while_same_reflection(50, 50, 20)
     katara.pid_walk(cm=1, vel=40)
     katara.pid_align(PIDValues(target=30, kp=0.5, ki=0.002, kd=0.1))
     katara.pid_walk(cm=15, vel=-40)
-    katara.pid_turn(multiplier * (-90))
-    katara.forward_while_same_reflection(50, 50, 20)
-    katara.pid_walk(cm=5, vel=40)
-    katara.forward_while_same_reflection(50, 50, 20)
-    katara.pid_walk(cm=20, vel=40)
     katara.pid_turn(multiplier * 90)
+
+    katara.forward_while_same_reflection(50, 50, 20)
+
+    # rampa
+    katara.pid_walk(cm=80, vel=80)
+
+    katara.pid_turn(-multiplier * 90)
     katara.forward_while_same_reflection(50, 50, 20)
     katara.pid_walk(cm=1, vel=40)
     katara.pid_align(PIDValues(target=30, kp=0.5, ki=0.002, kd=0.1))
     katara.pid_walk(cm=10, vel=-40)
-    katara.pid_turn(multiplier * (-90))
+    katara.pid_turn(multiplier * 90)
+
+    # apontando pra cor
+    katara.forward_while_same_reflection(50, 50, 20)
+    katara.pid_align(PIDValues(target=30, kp=0.5, ki=0.002, kd=0.1))
+
+    katara.motor_claw.run_target(300, const.CLAW_DOWN)
+    katara.pid_walk(cm=15, vel=40)
+    katara.motor_claw.run_target(300, const.CLAW_UP)
+    katara.pid_walk(cm=50, vel=-40)
+
+    katara.pid_turn(-multiplier * 90)
+    katara.forward_while_same_reflection(50, 50, 20)
+    katara.pid_walk(cm=1, vel=40)
+    katara.pid_align(PIDValues(target=30, kp=0.5, ki=0.002, kd=0.1))
+    katara.pid_walk(cm=10, vel=-40)
+
+    katara.pid_turn(-multiplier * 90)
+    katara.forward_while_same_reflection(50, 50, 20)
+    katara.pid_walk(cm=1, vel=40)
+    katara.pid_align(PIDValues(target=30, kp=0.5, ki=0.002, kd=0.1))
+    katara.pid_walk(cm=10, vel=-40)
+    katara.pid_turn(180)
+    katara.pid_walk(cm=80, vel=-40)
+    katara.pid_turn(180)
+    katara.forward_while_same_reflection(50, 50, 20)
+    katara.pid_walk(cm=10, vel=40)
+    katara.motor_claw.run_target(300, const.CLAW_DOWN)
+    katara.pid_walk(cm=10, vel=-40)
+
+
+def main():
+    """Main"""
+    hostname = get_hostname()
+    if hostname == "katara":
+        vem_pra_ufu_katara()
+    elif hostname == "toph":
+        vem_pra_ufu_toph()
 
 
 if __name__ == "__main__":
-    vem_pra_ufu_toph()
+    main()
