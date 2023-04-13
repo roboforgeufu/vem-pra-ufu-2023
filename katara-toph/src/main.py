@@ -121,12 +121,14 @@ def vem_pra_ufu_toph():
         toph.forward_while_same_reflection(50, 50, 20)
         toph.pid_walk(cm=10, vel=-60)
         toph.pid_turn(90)
+        logic_mbox.send(False)
 
     elif objetivo == Color.RED:
         toph.pid_walk(cm=10, vel=-60)
         toph.pid_turn(-90)
         toph.forward_while_same_reflection(50, 50, 20)
         toph.pid_walk(cm=15, vel=-60)
+        logic_mbox.send(True)
 
     toph.motor_claw.run_target(300, const.CLAW_DOWN)
 
@@ -166,19 +168,21 @@ def vem_pra_ufu_katara():
         katara.pid_walk(cm=1, vel=40)
         katara.pid_align(PIDValues(target=30, kp=0.5, ki=0.002, kd=0.1))
         katara.pid_walk(cm=4, vel=40)
-        if (katara.color_l.reflection() > 0
-        and katara.color_l.reflection() < 10
-        and katara.color_r.reflection() > 0
-        and katara.color_r.reflection() < 10):
+        if (
+            katara.color_l.reflection() > 0
+            and katara.color_l.reflection() < 10
+            and katara.color_r.reflection() > 0
+            and katara.color_r.reflection() < 10
+        ):
             break
         katara.pid_walk(cm=15, vel=-40)
         katara.pid_turn(90)
-    
+ 
     katara.pid_walk(cm=15, vel=-40)
     logic_mbox.wait()
     var = logic_mbox.read()
 
-    #True = RED, False = YELLOW
+    # True = RED, False = YELLOW
     if var:
         multiplier = -1
 
@@ -187,8 +191,18 @@ def vem_pra_ufu_katara():
     katara.pid_walk(cm=1, vel=40)
     katara.pid_align(PIDValues(target=30, kp=0.5, ki=0.002, kd=0.1))
     katara.pid_walk(cm=15, vel=-40)
+    katara.pid_turn(multiplier * (-90))
+    katara.forward_while_same_reflection(50, 50, 20)
+    katara.pid_walk(cm=5, vel=40)
+    katara.forward_while_same_reflection(50, 50, 20)
+    katara.pid_walk(cm=20, vel=40)
     katara.pid_turn(multiplier * 90)
+    katara.forward_while_same_reflection(50, 50, 20)
+    katara.pid_walk(cm=1, vel=40)
+    katara.pid_align(PIDValues(target=30, kp=0.5, ki=0.002, kd=0.1))
+    katara.pid_walk(cm=10, vel=-40)
+    katara.pid_turn(multiplier * (-90))
 
 
 if __name__ == "__main__":
-    vem_pra_ufu_katara()
+    vem_pra_ufu_toph()
